@@ -11,7 +11,7 @@ authRouter.post('/signup', async (req, res) => {
         const { firstName, lastName, emailId, password } = req.body;
         const passwordHash = await bcrypt.hash(password, 10);
 
-        // create new instance of useModel which needs to be stored in db
+        // Create new instance of useModel which needs to be stored in db
         const user = new User({
             firstName,
             lastName,
@@ -20,7 +20,7 @@ authRouter.post('/signup', async (req, res) => {
         });
 
         await user.save();
-        res.send('user added successfully');
+        res.json({ message: 'User added successfully' });
     }
     catch (err) {
         res.status(400).send(err.message);
@@ -39,7 +39,7 @@ authRouter.post('/login', async (req, res) => {
             else {
                 const token = await user.getJWT();
                 res.cookie("token", token);
-                res.send('Login successfull!!!');
+                res.json({ message: 'Login Successfull' });
             }
         }
         else {
@@ -60,8 +60,9 @@ authRouter.post('/forgetPassword', async (req, res) => {
             const passwordHash = await bcrypt.hash(password, 10);
             user.password = passwordHash;
             await user.save();
-            res.send('Password Updated Successfully');
+            res.json({ message: 'Password Updated Successfully' });
         }
+
         else {
             throw new Error('User Not Found');
         }
@@ -74,7 +75,7 @@ authRouter.post('/forgetPassword', async (req, res) => {
 authRouter.post('/logout', async (req, res) => {
     try {
         res.cookie("token", null, { expires: new Date(Date.now()) });
-        res.send('Logout SuccessFull');
+        res.json({ message: 'Logout Successfull' });
     }
     catch (err) {
         res.status(400).send(err.message);

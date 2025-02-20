@@ -13,7 +13,7 @@ userRouter.get('/users', async (req, res) => {
         if (users.length === 0) {
             throw new Error("No data found")
         }
-        res.send(users);
+        res.json({ data: users });
     }
     catch (err) {
         res.status(400).send({ err: err.message });
@@ -31,9 +31,7 @@ userRouter.get('/users/requests/received', userAuth, async (req, res) => {
         if (!requests) {
             res.send(400).json({ message: 'no Request found' })
         }
-        res.send({
-            requests
-        })
+        res.json({ data: requests });
     }
     catch (err) {
         res.status(400).send({ err: err.message });
@@ -64,13 +62,56 @@ userRouter.get('/users/connections', userAuth, async (req, res) => {
             return row.fromUserId;
         })
 
-        res.send({
-            data
-        })
+        res.json({ data });
     }
     catch (err) {
         res.status(400).send({ err: err.message });
     }
 })
+
+
+userRouter.get('/users/feed', userAuth, async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 2;
+        // sanitize it user may send limit as 100000
+        limit = limit > 50 ? 50 : limit;
+        const skip = (page - 1) * limit;
+
+        const requests = await ConnectionRequest.find({
+            $or: [
+                {
+                    toUserId: userId,
+                },
+                {
+                    fromUserId: userId,
+                }
+            ]
+        }).select("fromUserId toUserId");
+
+        const hideUsersfromFeed = new Set();
+
+        requests.forEach((req) => {
+            hideUsersfromFeed.add(req.fromUserId.toString());
+            hideUsersfromFeed.add(req.toUserId.toString());
+        })
+
+        const feeds = await User.find({
+            $and: [{ _id: { $nin: Array.from(hideUsersfromFeed) } },
+            { _id: { $ne: userId } }
+            ]
+        }).select("firstName lastName age about gender").skip(skip).limit(limit);
+
+        if (feeds.length === 0) {
+            throw new Error("No data found")
+        }
+        res.json({ data: feeds });
+    }
+    catch (err) {
+        res.status(400).send({ err: err.message });
+    }
+})
+
 
 module.exports = userRouter;

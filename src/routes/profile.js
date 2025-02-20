@@ -10,7 +10,7 @@ profileRouter.get('/profile/view', userAuth, async (req, res) => {
         if (!user) {
             throw new Error('Authentication Failed');
         }
-        res.send(user);
+        res.json({ data: user });
     }
     catch (err) {
         res.status(400).send(err.message);
@@ -28,7 +28,7 @@ profileRouter.patch('/profile/edit', userAuth, async (req, res) => {
         }
         Object.keys(req.body).forEach((key) => (user[key] = req.body[key]));
         await user.save();
-        res.send({
+        res.json({
             message: 'Edit Sucessfull',
             user
         });

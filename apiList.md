@@ -21,4 +21,4 @@ connectionReqRouter
 - GET /user/request
 - GET /user/feeds -> get profiles of other users on the platform
 
-Status: ignore, intrested, accepted, rejected
+Status: ignore, interested, accepted, rejected
